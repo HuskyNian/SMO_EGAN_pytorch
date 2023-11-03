@@ -30,3 +30,6 @@ python train.py --problem Canada --post_fix select8 -mu 4 --seed 42 --select 8
 ```
 
 ## Evaluate the TabularSOMEGAN
+```bash
+python eval.py --path [model path xxx.pth] --problem [chosen census data]
+```

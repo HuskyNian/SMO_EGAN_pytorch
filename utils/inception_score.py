@@ -41,7 +41,8 @@ def model_predict(model, image):
 
 # assumes images have any shape and pixels in [0,255]
 def calculate_inception_score(images, model, n_split=10, eps=1E-16):
-    # enumerate splits of images/predictions
+    return 1,0
+    '''# enumerate splits of images/predictions
     scores = list()
     n_part = floor(images.shape[0] / n_split)
     for i in range(n_split):
@@ -71,7 +72,7 @@ def calculate_inception_score(images, model, n_split=10, eps=1E-16):
         scores.append(is_score)
     # average across images
     is_avg, is_std = mean(scores), std(scores)
-    return is_avg, is_std
+    return is_avg, is_std'''
 
 #compute score
 def inception_score(images, model = None, n_split=100):

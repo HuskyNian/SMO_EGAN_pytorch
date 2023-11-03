@@ -55,7 +55,7 @@ def OneHot(X, n=None, negative_class=0.):
 
 
 def iter_data(*data, **kwargs):
-    size = kwargs.get('size', 128)
+    size = kwargs.get('size', 128) # n = len(data)
     try:
         n = len(data[0])
     except:

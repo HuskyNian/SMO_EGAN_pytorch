@@ -77,15 +77,15 @@ class VarationDeepQLearning(Varation):
         self.fd_min = -1# float("inf")
         self.fd_max =  7# 9 #-float("inf")
         def _encode_state(instance):
-            self.fd_min = min(self.fd_min, instance.fd)
-            self.fd_max = max(self.fd_max, instance.fd)
-            norm_fd = (instance.fd - self.fd_min) / (self.fd_max - self.fd_min)
-            return (instance.fq,  norm_fd)
+            #self.fd_min = min(self.fd_min, instance.fd)
+            #self.fd_max = max(self.fd_max, instance.fd)
+            #norm_fd = (instance.fd - self.fd_min) / (self.fd_max - self.fd_min)
+            return (instance.fq,  instance.fd)  #### risk should be normalized to 0-1, now it's between -1~1
         self.encode_state = _encode_state
-        self.state_size = 2 #3
+        self.state_size = 2 #3  # input dim of the neural networ for action choosing
         # ###############################################################################  
         self.batch = SarsaBatch()
-        self.batch_size = 200
+        self.batch_size = 32
         self.first_epoch = True
         self.learning_rate = 0.1 #0.1 #/ self.batch_size
         self.qfun = DeepQFunction(size=self.state_size,
@@ -119,7 +119,7 @@ class VarationDeepQLearning(Varation):
         if not self.first_epoch:
             self.update_epsilon()
 
-    def gen(self, samples, instance, instance_id): 
+    def gen(self,  instance, instance_id,instances,generator_trainer,metric=True): 
         #choise
         if instance is not None:
             state = self.encode_state(instance)
@@ -130,19 +130,26 @@ class VarationDeepQLearning(Varation):
         #debug
         self.actions_chosen[action] += 1
         #gen
-        new_instance = self.generate_offsptring(samples, action, instance_id, instance)
+        new_instance,cond_loss,g_loss = self.generate_offsptring( action, instance_id,instances,generator_trainer, instance,metric=metric)
         #add into batch
         if instance is not None:
             next_state = self.encode_state(new_instance)
-            next_action = self.qfun.action(state)
+            
             #add into batch
-            self.batch.append(
-                state,
-                action,
-                next_state,
-                next_action,
-                int(next_state[0] < state[0])
-            )
+            utility_before = state[1]
+            utility_after = next_state[1]
+            if utility_after!=utility_before:
+                next_action = self.qfun.action(state)
+                #print('utility_before and after',utility_before,utility_after)
+                self.batch.append(
+                    state,
+                    action,
+                    next_state,
+                    next_action,
+                    int(utility_after > utility_before)
+                )
+                # reward is 1 if the new utility score is large than before
+        return cond_loss,g_loss
         
 
 
